@@ -3,30 +3,31 @@
 
 substitutions:
   # water or gas
-  device_class: 'water'
+  device_class: "water"
 
   # mdi:water or mdi:meter-gas
-  device_icon: 'mdi:water'
+  device_icon: "mdi:water"
 
   # For water one of: CCF, ft³, gal, L, m³
   # For gas one of: CCF, ft³, m³
-  volume_unit: 'gal'
+  volume_unit: "gal"
 
-  i2c_scl: GPIO5  # D1
-  i2c_sda: GPIO4  # D2
+  i2c_scl: GPIO5 # D1
+  i2c_sda: GPIO4 # D2
 
   # Set these only if you have connected two QMC5883L to one device, see esphome-two-meters.yaml
-  prefix_name: ''
-  prefix_id: ''
+  prefix_name: ""
+  prefix_id: ""
 
-  qmc5883l_update_interval: '5ms'
-  qmc5883l_oversampling: '64x'
+  qmc5883l_update_interval: "5ms"
+  qmc5883l_oversampling: "64x"
 
-  volume_per_half_rotation_initial_value: '0.01008156'
-  flow_update_interval_seconds: '10'
+  volume_per_half_rotation_initial_value: "0.01008156"
+  flow_update_interval_seconds: "10"
+  flow_update_force: false
 
-  hide_magnetic_field_strength_sensors: 'true'
-  hide_half_rotations_total_sensor: 'true'
+  hide_magnetic_field_strength_sensors: "true"
+  hide_half_rotations_total_sensor: "true"
 
 esphome:
   min_version: "2024.4.0" # This version includes https://github.com/esphome/esphome/pull/6456
@@ -52,25 +53,25 @@ api:
       then:
         - globals.set:
             id: ${prefix_id}half_rotations_total
-            value: !lambda 'return new_total / id(${prefix_id}volume_per_half_rotation).state;'
+            value: !lambda "return new_total / id(${prefix_id}volume_per_half_rotation).state;"
 
 globals:
   - id: ${prefix_id}half_rotations_total
     type: long
     restore_value: yes
-    initial_value: '0'
+    initial_value: "0"
   - id: ${prefix_id}half_rotations_flow
     type: long
     restore_value: no
-    initial_value: '0'
+    initial_value: "0"
   - id: ${prefix_id}axis_value_high
     type: bool
     restore_value: no
-    initial_value: 'false'
+    initial_value: "false"
   - id: ${prefix_id}calibrating
     type: bool
     restore_value: no
-    initial_value: 'false'
+    initial_value: "false"
   - id: ${prefix_id}calibrating_axis_x_min
     type: float
     restore_value: no
@@ -108,7 +109,7 @@ number:
   - platform: template
     id: ${prefix_id}temperature_offset
     name: ${prefix_name}Temperature Offset
-    unit_of_measurement: '°C'
+    unit_of_measurement: "°C"
     min_value: -100
     max_value: 100
     step: 0.1
@@ -117,7 +118,7 @@ number:
     optimistic: true
     restore_value: true
     initial_value: 33
-    icon: 'mdi:thermometer'
+    icon: "mdi:thermometer"
     entity_category: config
 
   - platform: template
@@ -286,8 +287,8 @@ sensor:
           - lambda:
               if (id(${prefix_id}axis).state == "x") id(${prefix_id}axis_value).publish_state(x);
               if (id(${prefix_id}calibrating)) {
-                id(${prefix_id}calibrating_axis_x_min) = min(id(${prefix_id}calibrating_axis_x_min), x);
-                id(${prefix_id}calibrating_axis_x_max) = max(id(${prefix_id}calibrating_axis_x_max), x);
+              id(${prefix_id}calibrating_axis_x_min) = min(id(${prefix_id}calibrating_axis_x_min), x);
+              id(${prefix_id}calibrating_axis_x_max) = max(id(${prefix_id}calibrating_axis_x_max), x);
               }
       filters:
         - delta: 3
@@ -316,8 +317,8 @@ sensor:
           - lambda:
               if (id(${prefix_id}axis).state == "z") id(${prefix_id}axis_value).publish_state(x);
               if (id(${prefix_id}calibrating)) {
-                id(${prefix_id}calibrating_axis_z_min) = min(id(${prefix_id}calibrating_axis_z_min), x);
-                id(${prefix_id}calibrating_axis_z_max) = max(id(${prefix_id}calibrating_axis_z_max), x);
+              id(${prefix_id}calibrating_axis_z_min) = min(id(${prefix_id}calibrating_axis_z_min), x);
+              id(${prefix_id}calibrating_axis_z_max) = max(id(${prefix_id}calibrating_axis_z_max), x);
               }
       filters:
         - delta: 3
@@ -343,8 +344,8 @@ sensor:
     internal: ${hide_half_rotations_total_sensor}
     entity_category: diagnostic
     accuracy_decimals: 0
-    state_class: 'total_increasing'
-    icon: 'mdi:counter'
+    state_class: "total_increasing"
+    icon: "mdi:counter"
     filters:
       - delta: 1
 
@@ -358,6 +359,7 @@ sensor:
     icon: ${device_icon}
     state_class: total_increasing
     unit_of_measurement: ${volume_unit}
+    force_update: ${flow_update_force}
     filters:
       - or:
           - throttle: 60s
@@ -374,6 +376,7 @@ sensor:
     accuracy_decimals: 2
     state_class: measurement
     unit_of_measurement: ${volume_unit}/min
+    force_update: ${flow_update_force}
     filters:
       - or:
           - throttle: 60s
